@@ -31,7 +31,7 @@ import Effectful
 import Effectful.Dispatch.Static
 import Effectful.Dispatch.Static.Primitive
 
--- | Data tag for a resource effect.
+-- | Provide the ability to use the 'R.MonadResource' instance of 'Eff'.
 data Resource :: Effect
 
 type instance DispatchOf Resource = Static WithSideEffects
