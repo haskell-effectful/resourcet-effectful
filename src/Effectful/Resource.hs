@@ -9,9 +9,9 @@ module Effectful.Resource
   , runResource
 
     -- * Registering and releasing resources
-  , R.allocate
-  , R.allocate_
-  , R.register
+  , allocate
+  , allocate_
+  , register
   , R.release
   , R.unprotect
 
@@ -50,6 +50,45 @@ runResource m = unsafeEff $ \es0 -> do
     unconsEnv es
     RI.stateCleanupChecked Nothing istate
     pure a
+
+----------------------------------------
+-- Registering and releasing resources
+
+-- | Perform some allocation, and automatically register a cleanup action.
+allocate
+  :: Resource :> es
+  => Eff es a -- ^ allocate
+  -> (a -> Eff es ()) -- ^ free resource
+  -> Eff es (R.ReleaseKey, a)
+allocate acquire release = do
+  istate <- getInternalState
+  unsafeEff $ \es0 -> mask_ $ do
+    a <- unEff acquire es0
+    -- we need to clone original env for release action
+    -- because it will be called when original env already unconsed
+    es1 <- cloneEnv es0
+    key <- RI.register' istate $ unEff (release a) es1
+    pure (key, a)
+
+-- | Perform some allocation where the return value is not required, and
+-- automatically register a cleanup action.
+allocate_
+  :: Resource :> es
+  => Eff es a -- ^ allocate
+  -> Eff es () -- ^ free resource
+  -> Eff es R.ReleaseKey
+allocate_ a = fmap fst . allocate a . const
+
+-- | Register some action that will be called precisely once, either when
+-- 'runResource' is called, or when the 'R.ReleaseKey' is passed to 'release'.
+register :: Resource :> es => Eff es () -> Eff es R.ReleaseKey
+register release = do
+  istate <- getInternalState
+  unsafeEff $ \es0 -> do
+    -- we need to clone original env for release action
+    -- because it will be called when original env already unconsed
+    es1 <- cloneEnv es0
+    RI.register' istate $ unEff release es1
 
 ----------------------------------------
 -- Internal state
