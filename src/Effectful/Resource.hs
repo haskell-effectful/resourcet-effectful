@@ -9,9 +9,12 @@ module Effectful.Resource
   , runResource
 
     -- * Registering and releasing resources
-  , allocate
-  , allocate_
-  , register
+  , allocateEff
+  , allocateEff_
+  , registerEff
+  , R.allocate
+  , R.allocate_
+  , R.register
   , R.release
   , R.unprotect
 
@@ -54,13 +57,16 @@ runResource m = unsafeEff $ \es0 -> do
 ----------------------------------------
 -- Registering and releasing resources
 
--- | Perform some allocation, and automatically register a cleanup action.
-allocate
+-- | A variant of 'R.allocate` adjusted to work in the 'Eff' monad.
+--
+-- /Note:/ the @release@ action will run a cloned environment, so any changes it
+-- makes to thread local data will not be visible outside of it.
+allocateEff
   :: Resource :> es
   => Eff es a -- ^ allocate
   -> (a -> Eff es ()) -- ^ free resource
   -> Eff es (R.ReleaseKey, a)
-allocate acquire release = do
+allocateEff acquire release = do
   istate <- getInternalState
   unsafeEff $ \es0 -> mask_ $ do
     a <- unEff acquire es0
@@ -70,19 +76,23 @@ allocate acquire release = do
     key <- RI.register' istate $ unEff (release a) es1
     pure (key, a)
 
--- | Perform some allocation where the return value is not required, and
--- automatically register a cleanup action.
-allocate_
+-- | A variant of 'R.allocate_' adjusted to work in the 'Eff' monad.
+--
+-- /Note:/ the @release@ action will run a cloned environment, so any changes it
+-- makes to thread local data will not be visible outside of it.
+allocateEff_
   :: Resource :> es
   => Eff es a -- ^ allocate
   -> Eff es () -- ^ free resource
   -> Eff es R.ReleaseKey
-allocate_ a = fmap fst . allocate a . const
+allocateEff_ a = fmap fst . allocateEff a . const
 
--- | Register some action that will be called precisely once, either when
--- 'runResource' is called, or when the 'R.ReleaseKey' is passed to 'release'.
-register :: Resource :> es => Eff es () -> Eff es R.ReleaseKey
-register release = do
+-- | A variant of 'R.register' adjusted to work in the 'Eff' monad.
+--
+-- /Note:/ the @release@ action will run a cloned environment, so any changes it
+-- makes to thread local data will not be visible outside of it.
+registerEff :: Resource :> es => Eff es () -> Eff es R.ReleaseKey
+registerEff release = do
   istate <- getInternalState
   unsafeEff $ \es0 -> do
     -- we need to clone original env for release action
