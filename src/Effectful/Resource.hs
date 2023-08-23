@@ -12,6 +12,8 @@ module Effectful.Resource
   , allocateEff
   , allocateEff_
   , registerEff
+  , releaseEff
+  , unprotectEff
   , R.allocate
   , R.allocate_
   , R.register
@@ -24,6 +26,10 @@ module Effectful.Resource
   , runInternalState
   , R.createInternalState
   , R.closeInternalState
+
+    -- * Re-exports
+  , R.ReleaseKey
+  , R.ResourceCleanupException(..)
   ) where
 
 import Control.Exception
@@ -99,6 +105,17 @@ registerEff release = do
     -- because it will be called when original env already unconsed
     es1 <- cloneEnv es0
     RI.register' istate $ unEff release es1
+
+-- | A variant of 'R.release' adjusted to work in the 'Eff' monad.
+releaseEff :: Resource :> es => R.ReleaseKey -> Eff es ()
+releaseEff = unsafeEff_ . R.release
+
+-- | A variant of 'R.unprotect' adjusted to work in the 'Eff' monad.
+--
+-- /Note:/ the @release@ action returned will run a clone of the environment it
+-- was registered in, so the effect row @es'@ will be ignored.
+unprotectEff :: (Resource :> es, Resource :> es') => R.ReleaseKey -> Eff es (Maybe (Eff es' ()))
+unprotectEff = unsafeEff_ . fmap (fmap unsafeEff_) . R.unprotect
 
 ----------------------------------------
 -- Internal state
