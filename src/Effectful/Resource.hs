@@ -112,9 +112,14 @@ releaseEff = unsafeEff_ . R.release
 
 -- | A variant of 'R.unprotect' adjusted to work in the 'Eff' monad.
 --
--- /Note:/ the @release@ action returned will run a clone of the environment it
--- was registered in, so the effect row @es'@ will be ignored.
-unprotectEff :: (Resource :> es, Resource :> es') => R.ReleaseKey -> Eff es (Maybe (Eff es' ()))
+-- /Note:/ if the resource was acquired using 'allocateEff', 'allocateEff_' or
+-- 'registerEff' then the @release@ action returned will run in a clone of the
+-- environment it was registered in, so the effect row @es'@ will be ignored.
+-- Please see the documentation of the aforementioned functions.
+unprotectEff
+  :: (Resource :> es, Resource :> es')
+  => R.ReleaseKey
+  -> Eff es (Maybe (Eff es' ()))
 unprotectEff = unsafeEff_ . fmap (fmap unsafeEff_) . R.unprotect
 
 ----------------------------------------
