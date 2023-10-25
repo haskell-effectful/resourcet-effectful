@@ -13,7 +13,6 @@ module Effectful.Resource
   , allocateEff_
   , registerEff
   , releaseEff
-  , unprotectEff
   , R.allocate
   , R.allocate_
   , R.register
@@ -109,18 +108,6 @@ registerEff release = do
 -- | A variant of 'R.release' adjusted to work in the 'Eff' monad.
 releaseEff :: Resource :> es => R.ReleaseKey -> Eff es ()
 releaseEff = unsafeEff_ . R.release
-
--- | A variant of 'R.unprotect' adjusted to work in the 'Eff' monad.
---
--- /Note:/ if the resource was acquired using 'allocateEff', 'allocateEff_' or
--- 'registerEff' then the @release@ action returned will run in a clone of the
--- environment it was registered in, so the effect row @es'@ will be ignored.
--- Please see the documentation of the aforementioned functions.
-unprotectEff
-  :: (Resource :> es, Resource :> es')
-  => R.ReleaseKey
-  -> Eff es (Maybe (Eff es' ()))
-unprotectEff = unsafeEff_ . fmap (fmap unsafeEff_) . R.unprotect
 
 ----------------------------------------
 -- Internal state
