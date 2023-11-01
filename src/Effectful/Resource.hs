@@ -18,6 +18,8 @@ module Effectful.Resource
   , R.register
   , R.release
   , R.unprotect
+  , ReleaseAction(..)
+  , unprotectEff
 
     -- * Internal state
   , R.InternalState
@@ -108,6 +110,22 @@ registerEff release = do
 -- | A variant of 'R.release' adjusted to work in the 'Eff' monad.
 releaseEff :: Resource :> es => R.ReleaseKey -> Eff es ()
 releaseEff = unsafeEff_ . R.release
+
+-- | Action for releasing a resource.
+newtype ReleaseAction = ReleaseAction
+  { runReleaseAction :: forall es. Resource :> es => Eff es ()
+  }
+
+-- | A variant of 'R.unprotect' adjusted to work in the 'Eff' monad.
+--
+-- /Note:/ if the resource was acquired using 'allocateEff', 'allocateEff_' or
+-- 'registerEff' then the returned 'ReleaseAction' will run in a clone of the
+-- environment it was registered in.
+--
+-- See the documentation of the aforementioned functions for more information.
+unprotectEff :: Resource :> es => R.ReleaseKey -> Eff es (Maybe ReleaseAction)
+unprotectEff key = unsafeEff_ $ do
+  fmap (\m -> ReleaseAction $ unsafeEff_ m) <$> R.unprotect key
 
 ----------------------------------------
 -- Internal state
