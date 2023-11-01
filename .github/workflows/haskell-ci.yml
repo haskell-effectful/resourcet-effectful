@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.17.20230811
+# version: 0.17.20231010
 #
-# REGENDATA ("0.17.20230811",["github","--config=cabal.haskell-ci","resourcet-effectful.cabal"])
+# REGENDATA ("0.17.20231010",["github","--config=cabal.haskell-ci","resourcet-effectful.cabal"])
 #
 name: Haskell-CI
 on:
@@ -32,19 +32,24 @@ jobs:
     strategy:
       matrix:
         include:
-          - compiler: ghc-9.6.1
+          - compiler: ghc-9.8.1
             compilerKind: ghc
-            compilerVersion: 9.6.1
+            compilerVersion: 9.8.1
             setup-method: ghcup
             allow-failure: false
-          - compiler: ghc-9.4.4
+          - compiler: ghc-9.6.3
             compilerKind: ghc
-            compilerVersion: 9.4.4
+            compilerVersion: 9.6.3
             setup-method: ghcup
             allow-failure: false
-          - compiler: ghc-9.2.7
+          - compiler: ghc-9.4.7
             compilerKind: ghc
-            compilerVersion: 9.2.7
+            compilerVersion: 9.4.7
+            setup-method: ghcup
+            allow-failure: false
+          - compiler: ghc-9.2.8
+            compilerKind: ghc
+            compilerVersion: 9.2.8
             setup-method: ghcup
             allow-failure: false
           - compiler: ghc-9.0.2
@@ -159,7 +164,7 @@ jobs:
       - name: cache (tools)
         uses: actions/cache/restore@v3
         with:
-          key: ${{ runner.os }}-${{ matrix.compiler }}-tools-5b6f802b
+          key: ${{ runner.os }}-${{ matrix.compiler }}-tools-0f8d33a5
           path: ~/.haskell-ci-tools
       - name: install cabal-plan
         run: |
@@ -172,13 +177,13 @@ jobs:
           cabal-plan --version
       - name: install doctest
         run: |
-          if [ $((HCNUMVER < 90400)) -ne 0 ] ; then $CABAL --store-dir=$HOME/.haskell-ci-tools/store v2-install $ARG_COMPILER --ignore-project -j2 doctest --constraint='doctest ^>=0.20' ; fi
-          if [ $((HCNUMVER < 90400)) -ne 0 ] ; then doctest --version ; fi
+          $CABAL --store-dir=$HOME/.haskell-ci-tools/store v2-install $ARG_COMPILER --ignore-project -j2 doctest --constraint='doctest ^>=0.22'
+          doctest --version
       - name: save cache (tools)
         uses: actions/cache/save@v3
         if: always()
         with:
-          key: ${{ runner.os }}-${{ matrix.compiler }}-tools-5b6f802b
+          key: ${{ runner.os }}-${{ matrix.compiler }}-tools-0f8d33a5
           path: ~/.haskell-ci-tools
       - name: checkout
         uses: actions/checkout@v3
@@ -234,8 +239,8 @@ jobs:
           $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --write-ghc-environment-files=always
       - name: doctest
         run: |
-          if [ $((HCNUMVER < 90400)) -ne 0 ] ; then cd ${PKGDIR_resourcet_effectful} || false ; fi
-          if [ $((HCNUMVER < 90400)) -ne 0 ] ; then doctest  -XHaskell2010 -XBangPatterns -XConstraintKinds -XDataKinds -XDeriveFunctor -XDeriveGeneric -XFlexibleContexts -XFlexibleInstances -XGADTs -XGeneralizedNewtypeDeriving -XLambdaCase -XMultiParamTypeClasses -XNoStarIsType -XRankNTypes -XRoleAnnotations -XScopedTypeVariables -XStandaloneDeriving -XTupleSections -XTypeApplications -XTypeFamilies -XTypeOperators src ; fi
+          cd ${PKGDIR_resourcet_effectful} || false
+          doctest  -XHaskell2010 -XBangPatterns -XConstraintKinds -XDataKinds -XDeriveFunctor -XDeriveGeneric -XFlexibleContexts -XFlexibleInstances -XGADTs -XGeneralizedNewtypeDeriving -XLambdaCase -XMultiParamTypeClasses -XNoStarIsType -XRankNTypes -XRoleAnnotations -XScopedTypeVariables -XStandaloneDeriving -XTupleSections -XTypeApplications -XTypeFamilies -XTypeOperators src
       - name: cabal check
         run: |
           cd ${PKGDIR_resourcet_effectful} || false
