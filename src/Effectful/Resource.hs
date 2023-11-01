@@ -12,6 +12,7 @@ module Effectful.Resource
   , allocateEff
   , allocateEff_
   , registerEff
+  , releaseEff
   , R.allocate
   , R.allocate_
   , R.register
@@ -24,6 +25,10 @@ module Effectful.Resource
   , runInternalState
   , R.createInternalState
   , R.closeInternalState
+
+    -- * Re-exports
+  , R.ReleaseKey
+  , R.ResourceCleanupException(..)
   ) where
 
 import Control.Exception
@@ -99,6 +104,10 @@ registerEff release = do
     -- because it will be called when original env already unconsed
     es1 <- cloneEnv es0
     RI.register' istate $ unEff release es1
+
+-- | A variant of 'R.release' adjusted to work in the 'Eff' monad.
+releaseEff :: Resource :> es => R.ReleaseKey -> Eff es ()
+releaseEff = unsafeEff_ . R.release
 
 ----------------------------------------
 -- Internal state
