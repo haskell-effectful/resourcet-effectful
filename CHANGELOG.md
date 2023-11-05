@@ -1,4 +1,4 @@
-# resourcet-effectful-1.0.1.0 (2023-??-??)
+# resourcet-effectful-1.0.1.0 (2023-11-06)
 * Add `allocateEff`, `allocateEff_`, `registerEff`, `releaseEff` and
   `unprotectEff'.
 * Re-export `ReleaseKey` and `ResourceCleanupException`.
