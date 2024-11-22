@@ -34,8 +34,8 @@ module Effectful.Resource
   ) where
 
 import Control.Exception
-import qualified Control.Monad.Trans.Resource as R
-import qualified Control.Monad.Trans.Resource.Internal as RI
+import Control.Monad.Trans.Resource qualified as R
+import Control.Monad.Trans.Resource.Internal qualified as RI
 
 import Effectful
 import Effectful.Dispatch.Static
