@@ -185,7 +185,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.compiler }}-tools-4187e0b5
           path: ~/.haskell-ci-tools
       - name: checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: source
       - name: initial cabal.project for sdist
