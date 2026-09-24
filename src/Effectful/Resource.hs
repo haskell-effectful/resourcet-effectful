@@ -1,5 +1,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+
 -- | Resource management via 'R.MonadResource'.
 module Effectful.Resource
   ( -- * Effect
@@ -18,7 +19,7 @@ module Effectful.Resource
   , R.register
   , R.release
   , R.unprotect
-  , ReleaseAction(..)
+  , ReleaseAction (..)
   , unprotectEff
 
     -- * Internal state
@@ -30,7 +31,7 @@ module Effectful.Resource
 
     -- * Re-exports
   , R.ReleaseKey
-  , R.ResourceCleanupException(..)
+  , R.ResourceCleanupException (..)
   ) where
 
 import Control.Exception
@@ -53,10 +54,11 @@ runResource m = unsafeEff $ \es0 -> do
   istate <- R.createInternalState
   mask $ \unmask -> do
     es <- consEnv (Resource istate) dummyRelinker es0
-    a <- unmask (unEff m es) `catch` \e -> do
-      unconsEnv es
-      RI.stateCleanupChecked (Just e) istate
-      throwIO e
+    a <-
+      unmask (unEff m es) `catch` \e -> do
+        unconsEnv es
+        RI.stateCleanupChecked (Just e) istate
+        throwIO e
     unconsEnv es
     RI.stateCleanupChecked Nothing istate
     pure a
@@ -70,8 +72,10 @@ runResource m = unsafeEff $ \es0 -> do
 -- makes to thread local data will not be visible outside of it.
 allocateEff
   :: Resource :> es
-  => Eff es a -- ^ allocate
-  -> (a -> Eff es ()) -- ^ free resource
+  => Eff es a
+  -- ^ allocate
+  -> (a -> Eff es ())
+  -- ^ free resource
   -> Eff es (R.ReleaseKey, a)
 allocateEff acquire release = do
   istate <- getInternalState
@@ -89,8 +93,10 @@ allocateEff acquire release = do
 -- makes to thread local data will not be visible outside of it.
 allocateEff_
   :: Resource :> es
-  => Eff es a -- ^ allocate
-  -> Eff es () -- ^ free resource
+  => Eff es a
+  -- ^ allocate
+  -> Eff es ()
+  -- ^ free resource
   -> Eff es R.ReleaseKey
 allocateEff_ a = fmap fst . allocateEff a . const
 

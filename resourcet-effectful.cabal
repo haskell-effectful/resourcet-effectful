@@ -11,11 +11,11 @@ synopsis:           Adaptation of the resourcet library for the effectful ecosys
 
 description:        Adaptation of the @<https://hackage.haskell.org/package/resourcet resourcet>@ library for the @<https://hackage.haskell.org/package/effectful effectful>@ ecosystem.
 
-extra-source-files:
+extra-doc-files:
   CHANGELOG.md
   README.md
 
-tested-with: GHC == { 8.10.7, 9.0.2, 9.2.8, 9.4.8, 9.6.7, 9.8.4, 9.10.3, 9.12.2, 9.14.1 }
+tested-with: GHC ^>= { 8.10, 9.0, 9.2, 9.4, 9.6, 9.8, 9.10, 9.12, 9.14 }
 
 bug-reports: https://github.com/haskell-effectful/resourcet-effectful/issues
 source-repository head
@@ -59,7 +59,7 @@ library
     import:         language
 
     build-depends:    base                >= 4.14      && < 5
-                    , effectful-core      >= 1.0.0.0   && < 3.0.0.0
+                    , effectful-core      >= 1.0.0.0   && < 3
                     , resourcet           >= 1.2.4.3   && < 1.4
 
     hs-source-dirs:  src
